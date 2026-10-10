@@ -5,25 +5,27 @@
 ![Pandas](https://img.shields.io/badge/Pandas-150458?style=flat-square&logo=pandas&logoColor=white)
 ![NumPy](https://img.shields.io/badge/NumPy-013243?style=flat-square&logo=numpy&logoColor=white)
 ![Jupyter](https://img.shields.io/badge/Jupyter-F37626?style=flat-square&logo=jupyter&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite&logoColor=white)
 
 Análisis de **107,074 casos de dengue** notificados entre 2000 y 2024 con lugar probable de infección en Loreto, a partir de los datos abiertos de vigilancia epidemiológica del MINSA.
 
 ## 🎯 Pregunta de análisis
 
-¿Cuándo, dónde y a quiénes afecta más el dengue en Loreto, y qué cambió en las epidemias de 2023 y 2024?
+¿Cuándo, dónde y a quiénes afecta más el dengue en Loreto, y en qué se diferencia de la tendencia nacional?
 
-Loreto es el **tercer departamento del Perú con más casos de dengue** registrados entre 2000 y 2024, detrás de Piura y Lima, y concentra el **10.4%** del total nacional.
+Loreto es el **tercer departamento del Perú con más casos de dengue** registrados entre 2000 y 2024, detrás de Piura y Lima, y concentra el **10.4%** del total nacional. A nivel nacional, 2023 y 2024 fueron años récord: juntos suman más de 528,000 casos, más de la mitad de todo el registro.
 
 ## 📊 Resultados principales
 
 > 🚧 En construcción. Esta sección se completará al terminar el análisis.
 
-**Primeros hallazgos** (notebooks 01 y 02):
+**Primeros hallazgos** (notebooks 01 a 03):
 
-1. **2023 y 2024 fueron años excepcionales a nivel nacional:** juntos suman más de 528,000 casos, más de la mitad de todo el registro de 25 años. 2024 (271,531 casos) superó incluso a 2023 (256,641).
-2. **El dengue en Loreto afecta sobre todo a población joven:** la edad mediana de los casos es de **21 años**, y el **42.7%** son menores de 18.
-3. **Los casos en Loreto son, en proporción, más graves que el promedio nacional:** el **15.5%** presenta signos de alarma o es grave, frente al **11.1%** en todo el país.
-4. **El 52.4% de los casos corresponde a mujeres.**
+1. **Loreto no siguió la ola nacional de 2023–2024.** Su año con más casos fue **2011 (21,245)**; en 2023 y 2024 registró 6,582 y 7,996 casos, cifras habituales para la región.
+2. **El dengue en Loreto es, sobre todo, un problema urbano de Iquitos.** Los cuatro distritos de la ciudad (Iquitos, San Juan Bautista, Punchana y Belén) concentran el **64.6%** de los casos. Fuera de Iquitos destaca **Yurimaguas**, con 20,187 casos.
+3. **Afecta sobre todo a población joven:** la edad mediana de los casos es de **21 años**, y el **42.7%** son menores de 18.
+4. **Desde 2010, el 19.8% de los casos presenta signos de alarma o es grave**, con grandes variaciones entre años (de 7.7% a 45.9%).
+5. **El 52.4% de los casos corresponde a mujeres.**
 
 <!-- Aquí irán la curva epidémica, el heatmap de semanas por año y los hallazgos por distrito -->
 
@@ -65,15 +67,26 @@ Loreto es el **tercer departamento del Perú con más casos de dengue** registra
 10. Gravedad como variable categórica ordenada: sin signos de alarma, con signos de alarma y grave.
 11. Validación de sexo y semanas epidemiológicas, y comprobación de que la limpieza no eliminó ningún caso.
 
+**Análisis con SQL** (`03_sql.ipynb`)
+
+12. Carga de los casos en una base de datos SQLite y verificación de la carga.
+13. Consultas por año, provincia y distrito, agrupando por `ubigeo` y mostrando el nombre como etiqueta.
+14. Porcentaje de casos con signos de alarma o graves por año, con `SUM` y `AVG` sobre una variable binaria.
+15. Detección de un **cambio de clasificación en 2010**: antes de ese año casi ningún caso figura con signos de alarma. Por eso el análisis de gravedad se limita a 2010–2024.
+16. Comparación de periodos con `CASE WHEN` y filtro de años epidémicos con `HAVING`.
+
 **Próximas etapas**
 
-12. Carga en una base de datos SQLite y análisis con consultas SQL (`03_sql.ipynb`).
-13. Visualización y conclusiones (`04_visualizacion.ipynb`).
-14. Dashboard interactivo en Power BI.
+17. Estacionalidad por semana epidemiológica y gravedad por grupo de edad.
+18. Incidencia por 100,000 habitantes, uniendo datos de población del INEI con `JOIN`.
+19. Visualización y conclusiones (`04_visualizacion.ipynb`).
+20. Dashboard interactivo en Power BI.
 
 ## ⚠️ Limitaciones
 
 - **No se distinguen casos confirmados, probables y sospechosos:** el archivo no incluye la columna `tipo_dx` descrita en el diccionario de datos.
+- **La clasificación de gravedad cambió alrededor de 2010:** antes de ese año casi ningún caso figura con signos de alarma, probablemente porque se usaban otras categorías. La gravedad solo se compara entre 2010 y 2024.
+- **Posible sesgo de notificación:** los años con pocos casos tienen mayor porcentaje de casos con alarma o graves. En años tranquilos podrían notificarse sobre todo los casos que llegan a un hospital, lo que elevaría ese porcentaje.
 - **No hay información sobre fallecimientos**, por lo que no se puede analizar la letalidad.
 - **El lugar registrado es el de probable infección**, no el de residencia del paciente.
 - **Solo se conoce la semana de inicio de síntomas**, no la fecha exacta.
@@ -90,13 +103,15 @@ Aunque los datos son públicos y anonimizados, corresponden a personas reales. P
 dengue-loreto/
 ├── data/
 │   ├── raw/                            # Datos originales del MINSA (no se suben a GitHub)
+│   ├── dengue_loreto.db                # Base de datos SQLite (se genera con el notebook 03)
 │   └── processed/
 │       ├── dengue_loreto.csv           # Casos de Loreto, columnas seleccionadas
 │       └── dengue_loreto_limpio.csv    # Edad en años, grupos de edad y gravedad
 ├── images/                             # Gráficos del análisis
 ├── notebooks/
 │   ├── 01_exploracion.ipynb            # Carga, calidad de datos y filtro de Loreto
-│   └── 02_limpieza.ipynb               # Edades, grupos de edad y gravedad
+│   ├── 02_limpieza.ipynb               # Edades, grupos de edad y gravedad
+│   └── 03_sql.ipynb                    # Análisis con consultas SQL
 ├── sql/                                # Consultas SQL (próximamente)
 ├── requirements.txt
 └── README.md
