@@ -24,14 +24,21 @@ Loreto es el **tercer departamento del Perú con más casos de dengue** registra
 1. **Loreto no siguió la ola nacional de 2023–2024.** Su año con más casos fue **2011 (21,245)**; en 2023 y 2024 registró 6,582 y 7,996 casos, cifras habituales para la región.
 2. **El dengue en Loreto es, sobre todo, un problema urbano de Iquitos.** Los cuatro distritos de la ciudad (Iquitos, San Juan Bautista, Punchana y Belén) concentran el **64.6%** de los casos. Fuera de Iquitos destaca **Yurimaguas**, con 20,187 casos.
 3. **Afecta sobre todo a población joven:** la edad mediana de los casos es de **21 años**, y el **42.7%** son menores de 18.
-4. **Desde 2010, el 19.8% de los casos presenta signos de alarma o es grave**, con grandes variaciones entre años (de 7.7% a 45.9%).
-5. **El 52.4% de los casos corresponde a mujeres.**
+4. **Tiene una temporada marcada: el 67.4% de los casos ocurre entre noviembre y mediados de abril**, con el pico en enero y febrero. Entre julio y setiembre se registran los niveles más bajos: el primer trimestre concentra el triple de casos que el tercero.
+5. **Desde 2010, el 19.8% de los casos presenta signos de alarma o es grave**, con grandes variaciones entre años (de 7.7% a 45.9%).
+6. **El 52.4% de los casos corresponde a mujeres.**
+
+La temporada de contagios no coincide con el pico de calor de Iquitos (setiembre a noviembre), identificado en mi proyecto [Índice de calor en Iquitos](https://github.com/David-Sac/clima-iquitos): los casos empiezan a subir cuando termina esa temporada y llegan a su pico dos o tres meses después. Una hipótesis por comprobar es que la lluvia, que forma criaderos de mosquitos, esté más relacionada que el calor.
 
 <!-- Aquí irán la curva epidémica, el heatmap de semanas por año y los hallazgos por distrito -->
 
 ## 💡 Implicaciones
 
-> 🚧 En construcción.
+> Preliminares: se completarán al terminar el análisis.
+
+- **Prevención antes de la temporada alta:** las campañas de eliminación de criaderos tendrían más impacto en octubre y comienzos de noviembre, antes de que los casos empiecen a subir.
+- **Preparación de los servicios de salud para enero y febrero**, el periodo con más casos y, por lo tanto, con más pacientes con signos de alarma.
+- **Prioridad geográfica:** la ciudad de Iquitos y Yurimaguas concentran la gran mayoría de los casos.
 
 ## 🗂️ Datos
 
@@ -74,13 +81,14 @@ Loreto es el **tercer departamento del Perú con más casos de dengue** registra
 14. Porcentaje de casos con signos de alarma o graves por año, con `SUM` y `AVG` sobre una variable binaria.
 15. Detección de un **cambio de clasificación en 2010**: antes de ese año casi ningún caso figura con signos de alarma. Por eso el análisis de gravedad se limita a 2010–2024.
 16. Comparación de periodos con `CASE WHEN` y filtro de años epidémicos con `HAVING`.
+17. **Estacionalidad:** porcentaje de los casos de cada año que ocurre en cada semana, calculado con CTE y una función de ventana (`SUM() OVER (PARTITION BY ano)`), para que los años con más casos no dominen el patrón. El promedio entre años considera como 0 las semanas sin casos, y se validó que el patrón promedio sume 100%.
 
 **Próximas etapas**
 
-17. Estacionalidad por semana epidemiológica y gravedad por grupo de edad.
-18. Incidencia por 100,000 habitantes, uniendo datos de población del INEI con `JOIN`.
-19. Visualización y conclusiones (`04_visualizacion.ipynb`).
-20. Dashboard interactivo en Power BI.
+18. Gravedad por grupo de edad.
+19. Incidencia por 100,000 habitantes, uniendo datos de población del INEI con `JOIN`.
+20. Visualización y conclusiones (`04_visualizacion.ipynb`).
+21. Dashboard interactivo en Power BI.
 
 ## ⚠️ Limitaciones
 
@@ -89,7 +97,7 @@ Loreto es el **tercer departamento del Perú con más casos de dengue** registra
 - **Posible sesgo de notificación:** los años con pocos casos tienen mayor porcentaje de casos con alarma o graves. En años tranquilos podrían notificarse sobre todo los casos que llegan a un hospital, lo que elevaría ese porcentaje.
 - **No hay información sobre fallecimientos**, por lo que no se puede analizar la letalidad.
 - **El lugar registrado es el de probable infección**, no el de residencia del paciente.
-- **Solo se conoce la semana de inicio de síntomas**, no la fecha exacta.
+- **Solo se conoce la semana de inicio de síntomas**, no la fecha exacta. Además, las epidemias pueden cruzar el cambio de año (la de 2011 empezó a fines de 2010), por lo que el análisis por año calendario puede partir una misma epidemia en dos.
 - **Los conteos de casos no equivalen a riesgo:** para comparar distritos o grupos de edad hace falta la población de cada uno (incidencia por 100,000 habitantes), que se incorporará con datos del INEI.
 - Las filas idénticas no se eliminan: sin un identificador de paciente, no es posible distinguir un registro duplicado de dos casos reales con las mismas características.
 
