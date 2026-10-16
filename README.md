@@ -25,7 +25,7 @@ Loreto es el **tercer departamento del Perú con más casos de dengue** registra
 2. **El dengue en Loreto es, sobre todo, un problema urbano de Iquitos.** Los cuatro distritos de la ciudad (Iquitos, San Juan Bautista, Punchana y Belén) concentran el **64.6%** de los casos. Fuera de Iquitos destaca **Yurimaguas**, con 20,187 casos.
 3. **Afecta sobre todo a población joven:** la edad mediana de los casos es de **21 años**, y el **42.7%** son menores de 18.
 4. **Tiene una temporada marcada: el 67.4% de los casos ocurre entre noviembre y mediados de abril**, con el pico en enero y febrero. Entre julio y setiembre se registran los niveles más bajos: el primer trimestre concentra el triple de casos que el tercero.
-5. **Desde 2010, el 19.8% de los casos presenta signos de alarma o es grave**, con grandes variaciones entre años (de 7.7% a 45.9%).
+5. **Desde 2010, el 19.8% de los casos presenta signos de alarma o es grave**, con grandes variaciones entre años (de 7.7% a 45.9%). **La gravedad es muy similar en todas las edades:** entre el 18.1% (adultos de 30 a 59 años) y el 22.0% (adolescentes). Cerca de 1 de cada 5 casos necesita atención especial, a cualquier edad.
 6. **El 52.4% de los casos corresponde a mujeres.**
 
 La temporada de contagios no coincide con el pico de calor de Iquitos (setiembre a noviembre), identificado en mi proyecto [Índice de calor en Iquitos](https://github.com/David-Sac/clima-iquitos): los casos empiezan a subir cuando termina esa temporada y llegan a su pico dos o tres meses después. Una hipótesis por comprobar es que la lluvia, que forma criaderos de mosquitos, esté más relacionada que el calor.
@@ -50,6 +50,13 @@ La temporada de contagios no coincide con el pico de calor de Iquitos (setiembre
 | **Cobertura** | Perú, 2000–2024 · 1,029,421 casos notificados |
 | **Unidad de análisis** | Un caso de dengue por fila |
 | **Filtro aplicado** | Lugar probable de infección: departamento de Loreto (107,074 casos) |
+
+**Datos complementarios para la incidencia**
+
+| | |
+|---|---|
+| **Población** | *Población identificada con DNI – Setiembre 2021*, RENIEC (Plataforma Nacional de Datos Abiertos), por distrito, edad y sexo |
+| **Equivalencias de ubigeo** | Tabla de códigos INEI y RENIEC por distrito: [ubigeo-peru-aumentado](https://github.com/jmcastagnetto/ubigeo-peru-aumentado) |
 
 **Variables utilizadas:** provincia, distrito y ubigeo (lugar probable de infección), año y semana epidemiológica de inicio de síntomas, forma clínica, dirección de salud que notifica, edad y sexo.
 
@@ -85,10 +92,19 @@ La temporada de contagios no coincide con el pico de calor de Iquitos (setiembre
 
 **Próximas etapas**
 
-18. Gravedad por grupo de edad.
-19. Incidencia por 100,000 habitantes, uniendo datos de población del INEI con `JOIN`.
-20. Visualización y conclusiones (`04_visualizacion.ipynb`).
-21. Dashboard interactivo en Power BI.
+18. **Gravedad por grupo de edad** (2010–2024), ordenando las categorías con `CASE` dentro del `ORDER BY` y validando que la suma de los grupos coincida con el total del periodo.
+
+**Datos de población** (`03_sql.ipynb`, sección 10)
+
+19. Carga del registro de población del RENIEC: separador `;`, codificación UTF-8 con BOM y una fila final sin datos.
+20. Filtro de residentes en Loreto y agregación de una fila por combinación de edad, sexo y tipo de DNI a una fila por distrito.
+21. **Validación de los códigos de distrito:** la columna `UBIGEO_INEI` del RENIEC tiene códigos incorrectos en tres distritos (Punchana, Indiana y Torres Causana). Se usó `UBIGEO_RENIEC` y una tabla de equivalencias, con un `LEFT JOIN` en pandas para detectar los registros sin pareja. Se descartaron dos códigos antiguos con 4 personas. Resultado: 53 distritos y 1,167,197 personas.
+
+**Próximas etapas**
+
+22. Incidencia por 100,000 habitantes: `JOIN` en SQL entre los casos y la población, por distrito y por grupo de edad.
+23. Visualización y conclusiones (`04_visualizacion.ipynb`).
+24. Dashboard interactivo en Power BI.
 
 ## ⚠️ Limitaciones
 
@@ -98,7 +114,9 @@ La temporada de contagios no coincide con el pico de calor de Iquitos (setiembre
 - **No hay información sobre fallecimientos**, por lo que no se puede analizar la letalidad.
 - **El lugar registrado es el de probable infección**, no el de residencia del paciente.
 - **Solo se conoce la semana de inicio de síntomas**, no la fecha exacta. Además, las epidemias pueden cruzar el cambio de año (la de 2011 empezó a fines de 2010), por lo que el análisis por año calendario puede partir una misma epidemia en dos.
-- **Los conteos de casos no equivalen a riesgo:** para comparar distritos o grupos de edad hace falta la población de cada uno (incidencia por 100,000 habitantes), que se incorporará con datos del INEI.
+- **Los conteos de casos no equivalen a riesgo:** para comparar distritos o grupos de edad hace falta la población de cada uno (incidencia por 100,000 habitantes).
+- **La población usada es la identificada con DNI en 2021, no la población censal.** En Loreto suma alrededor de un 13% más que las estimaciones oficiales, probablemente porque incluye personas que se mudaron sin actualizar su domicilio y fallecidos aún no dados de baja. Por eso la incidencia calculada será una estimación conservadora. Además, se usa la población de un solo año para todo el periodo, aunque la población de cada distrito cambió con el tiempo.
+- **Los distritos cambiaron con el tiempo:** en los últimos años se crearon provincias y distritos nuevos en Loreto, por lo que algunos casos antiguos pueden tener códigos que ya no existen.
 - Las filas idénticas no se eliminan: sin un identificador de paciente, no es posible distinguir un registro duplicado de dos casos reales con las mismas características.
 
 ## 🔒 Consideraciones éticas
@@ -110,7 +128,10 @@ Aunque los datos son públicos y anonimizados, corresponden a personas reales. P
 ```
 dengue-loreto/
 ├── data/
-│   ├── raw/                            # Datos originales del MINSA (no se suben a GitHub)
+│   ├── raw/                            # Datos originales (no se suben a GitHub)
+│   │   ├── datos_abiertos_vigilancia_dengue_2000_2024.csv   # Casos de dengue (MINSA)
+│   │   ├── 16_OPP_2021_SEP_1.csv       # Población identificada con DNI (RENIEC)
+│   │   └── ubigeo_equivalencias.csv    # Códigos INEI y RENIEC por distrito
 │   ├── dengue_loreto.db                # Base de datos SQLite (se genera con el notebook 03)
 │   └── processed/
 │       ├── dengue_loreto.csv           # Casos de Loreto, columnas seleccionadas
@@ -135,7 +156,7 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Luego descarga el archivo de la fuente, guárdalo en `data/raw/` y ejecuta los notebooks en orden.
+Luego descarga los archivos de casos de dengue y de población identificada con DNI desde la Plataforma Nacional de Datos Abiertos, guárdalos en `data/raw/` y ejecuta los notebooks en orden. La tabla de equivalencias de ubigeo se descarga automáticamente.
 
 ## 👤 Autor
 
