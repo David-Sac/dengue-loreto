@@ -1,14 +1,15 @@
 # 🦟 Dengue en Loreto (2000–2024): ¿cuándo, dónde y a quiénes afecta más?
 
-![Estado](https://img.shields.io/badge/Estado-En%20progreso-yellow?style=flat-square)
+![Estado](https://img.shields.io/badge/Estado-Completado-brightgreen?style=flat-square)
 ![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Pandas](https://img.shields.io/badge/Pandas-150458?style=flat-square&logo=pandas&logoColor=white)
 ![NumPy](https://img.shields.io/badge/NumPy-013243?style=flat-square&logo=numpy&logoColor=white)
 ![Matplotlib](https://img.shields.io/badge/Matplotlib-11557C?style=flat-square&logo=python&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite&logoColor=white)
 ![Jupyter](https://img.shields.io/badge/Jupyter-F37626?style=flat-square&logo=jupyter&logoColor=white)
+![Power BI](https://img.shields.io/badge/Power%20BI-F2C811?style=flat-square&logo=powerbi&logoColor=black)
 
-Análisis de **107,074 casos de dengue** notificados entre 2000 y 2024 con lugar probable de infección en Loreto, a partir de los datos abiertos de vigilancia epidemiológica del MINSA, y cálculo del **riesgo por habitante (incidencia)** con datos de población del RENIEC.
+Análisis de **107,074 casos de dengue** notificados entre 2000 y 2024 con lugar probable de infección en Loreto, a partir de los datos abiertos de vigilancia epidemiológica del MINSA, y cálculo del **riesgo por habitante (incidencia)** con datos de población del RENIEC. Incluye un **dashboard interactivo en Power BI**.
 
 ## 🎯 Pregunta de análisis
 
@@ -60,6 +61,19 @@ Loreto es el **tercer departamento del Perú con más casos de dengue** registra
 - **La gravedad es similar en todas las edades:** desde 2010, el **19.8%** de los casos presenta signos de alarma o es grave, entre el 18.1% (adultos) y el 22.0% (adolescentes). Cerca de 1 de cada 5 casos necesita atención especial, a cualquier edad.
 - El **52.4%** de los casos corresponde a mujeres.
 
+## 📈 Dashboard en Power BI
+
+El dashboard permite elegir el periodo y ver cómo cambian los casos, la incidencia y la gravedad. Tiene tres páginas: **Inicio** (indicadores, casos por año, incidencia por distrito y por edad), **Estacionalidad** (matriz de semanas × años) y **Detalle** (tabla de todos los distritos).
+
+![Dashboard: página de inicio](figures/05_dashboard_inicio.png)
+
+![Dashboard: estacionalidad](figures/06_dashboard_estacionalidad.png)
+
+- **Modelo estrella:** la tabla de casos en el centro, con tres dimensiones (distritos con su población, grupos de edad con su población y años).
+- **Medidas DAX** para casos, incidencia, porcentaje de casos con signos de alarma y porcentaje de los casos de cada año por semana.
+- **Validado contra SQL:** con el filtro en 2020–2024, el dashboard reproduce exactamente los resultados de los notebooks (36,419 casos, incidencia de 624.0 y 2,456.4 en Yurimaguas).
+- El archivo está en `powerbi/dengue_loreto.pbix` y su construcción se documenta en `05_exportar_powerbi.ipynb`.
+
 ## 💡 Implicaciones
 
 - **Prevención antes de la temporada alta:** las campañas de eliminación de criaderos tendrían más impacto en octubre y comienzos de noviembre, antes de que los casos empiecen a subir.
@@ -98,7 +112,7 @@ Loreto es el **tercer departamento del Perú con más casos de dengue** registra
 1. Identificación del separador (`;`) y detección de la codificación del archivo.
 2. Carga indicando como texto los códigos (`ubigeo`, `diresa`) y la edad, para no perder ceros a la izquierda ni mezclar unidades.
 3. Comparación de las columnas reales con el diccionario de datos: falta `tipo_dx` y sobran `localidad` y `localcod`.
-4. Diagnóstico y corrección de nombres con caracteres dañados (ñ y tildes), usando el `ubigeo` para recuperar la versión correcta de cada nombre dentro del propio dataset.
+4. Diagnóstico de nombres con caracteres dañados (ñ perdidas) y corrección manual del único nombre afectado en Loreto (`DATEM DEL MARAÑON`); para agrupar y unir se usa siempre el `ubigeo`.
 5. Validación del total de 2023 contra la cifra reportada para ese año: el dataset contiene alrededor del **94%** de los casos.
 6. Filtro de Loreto por lugar probable de infección (`departamento`), no por la dirección de salud que notifica (`diresa`).
 
@@ -135,9 +149,12 @@ Loreto es el **tercer departamento del Perú con más casos de dengue** registra
 26. Mapa de calor con porcentajes por año y escala limitada al 6%, para que unas pocas semanas extremas de años con pocos casos no dejen pálido el resto del gráfico.
 27. Gráfico de incidencia por distrito solo con distritos de 10,000 habitantes o más, porque en los más pequeños unos pocos casos cambian mucho la cifra.
 
-**Próximas etapas**
+**Dashboard en Power BI** (`05_exportar_powerbi.ipynb`)
 
-28. Dashboard interactivo en Power BI.
+28. Exportación de las tablas a CSV con codificación UTF-8 con BOM, y validación releyendo los archivos exportados.
+29. **Modelo estrella** con relaciones de varios a uno y filtro en una sola dirección, más una tabla calculada de años.
+30. **Medidas DAX:** la incidencia divide entre los años *seleccionados* (no los años con casos), y el porcentaje semanal usa `REMOVEFILTERS`, el equivalente de `OVER (PARTITION BY)`.
+31. **Validación contra SQL:** los resultados del dashboard coinciden con los de `03_sql.ipynb`.
 
 ## ⚠️ Limitaciones
 
@@ -167,15 +184,19 @@ dengue-loreto/
 │   │   ├── 16_OPP_2021_SEP.csv         # Población identificada con DNI (RENIEC)
 │   │   └── ubigeo_equivalencias.csv    # Códigos INEI y RENIEC por distrito
 │   ├── dengue_loreto.db                # Base de datos SQLite (se genera con el notebook 03)
+│   ├── powerbi/                        # CSV para Power BI (se generan con el notebook 05)
 │   └── processed/
 │       ├── dengue_loreto.csv           # Casos de Loreto, columnas seleccionadas
 │       └── dengue_loreto_limpio.csv    # Edad en años, grupos de edad y gravedad
-├── figures/                            # Gráficos del análisis (notebook 04)
+├── figures/                            # Gráficos del análisis y capturas del dashboard
 ├── notebooks/
 │   ├── 01_exploracion.ipynb            # Carga, calidad de datos y filtro de Loreto
 │   ├── 02_limpieza.ipynb               # Edades, grupos de edad y gravedad
 │   ├── 03_sql.ipynb                    # Análisis con SQL e incidencia
-│   └── 04_visualizacion.ipynb          # Gráficos
+│   ├── 04_visualizacion.ipynb          # Gráficos
+│   └── 05_exportar_powerbi.ipynb       # Exportación y documentación del dashboard
+├── powerbi/
+│   └── dengue_loreto.pbix              # Dashboard en Power BI
 ├── requirements.txt
 └── README.md
 ```
@@ -190,7 +211,9 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Luego descarga los archivos de casos de dengue y de población identificada con DNI desde la Plataforma Nacional de Datos Abiertos, guárdalos en `data/raw/` con los nombres de la estructura anterior y ejecuta los notebooks en orden (01 → 04). La tabla de equivalencias de ubigeo se descarga automáticamente.
+Luego descarga los archivos de casos de dengue y de población identificada con DNI desde la Plataforma Nacional de Datos Abiertos, guárdalos en `data/raw/` con los nombres de la estructura anterior y ejecuta los notebooks en orden (01 → 05). La tabla de equivalencias de ubigeo se descarga automáticamente.
+
+Para abrir el dashboard, usa [Power BI Desktop](https://www.microsoft.com/es-es/power-platform/products/power-bi/desktop) (gratuito, para Windows) y abre `powerbi/dengue_loreto.pbix`. Si cambias la ubicación del proyecto, actualiza la ruta de los CSV en **Transformar datos → Configuración de origen de datos**.
 
 ## 👤 Autor
 
